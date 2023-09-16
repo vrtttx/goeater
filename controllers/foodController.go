@@ -55,7 +55,7 @@ func CreateFood() gin.HandlerFunc {
 			return
 		}
 
-		validationErr := validade.Struct(food)
+		validationErr := validate.Struct(food)
 
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
