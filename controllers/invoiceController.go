@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -69,7 +68,7 @@ func GetInvoice() gin.HandlerFunc {
 
 		var invoiceView InvoiceViewFormat
 
-		allOrderItems, err := ItemsByOrder(invoice.Order_id)
+		allOrderItems, _ := ItemsByOrder(invoice.Order_id)
 
 		invoiceView.Order_id = invoice.Order_id
 		invoiceView.Payment_due_date = invoice.Payment_due_date
@@ -97,16 +96,12 @@ func CreateInvoice() gin.HandlerFunc {
 
 		if err := c.BindJSON(&invoice); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		validationErr := validate.Struct(invoice)
 
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-
-			return
 		}
 
 		err := orderCollection.FindOne(ctx, bson.M{"order_id": invoice.Order_id}).Decode(&order)
@@ -114,10 +109,8 @@ func CreateInvoice() gin.HandlerFunc {
 		defer cancel()
 
 		if err != nil {
-			msg := fmt.Sprintf("order was not found")
+			msg := "order was not found"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		status := "PENDING"
@@ -135,10 +128,8 @@ func CreateInvoice() gin.HandlerFunc {
 		result, insertErr := invoiceCollection.InsertOne(ctx, invoice)
 
 		if insertErr != nil {
-			msg := fmt.Sprintf("invoice was not created")
+			msg := "invoice was not created"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		defer cancel()
@@ -156,8 +147,6 @@ func UpdateInvoice() gin.HandlerFunc {
 
 		if err := c.BindJSON(&invoice); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		var updateObj primitive.D
@@ -189,10 +178,8 @@ func UpdateInvoice() gin.HandlerFunc {
 		result, err := invoiceCollection.UpdateOne(ctx, filter, bson.D{{Key: "$set", Value: updateObj}}, &opt,)
 
 		if err != nil {
-			msg := fmt.Sprintf("invoice update failed")
+			msg := "invoice update failed"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		defer cancel()

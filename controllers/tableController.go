@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -66,16 +65,12 @@ func CreateTable() gin.HandlerFunc {
 
 		if err := c.BindJSON(&table); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		validationErr := validate.Struct(table)
 
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-
-			return
 		}
 
 		table.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -86,10 +81,8 @@ func CreateTable() gin.HandlerFunc {
 		result, insertErr := tableCollection.InsertOne(ctx, table)
 
 		if insertErr != nil {
-			msg := fmt.Sprintf("table was not created")
+			msg := "table was not created"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		defer cancel()
@@ -107,8 +100,6 @@ func UpdateTable() gin.HandlerFunc {
 
 		if err := c.BindJSON(&table); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 		
 		var updateObj primitive.D
@@ -134,10 +125,8 @@ func UpdateTable() gin.HandlerFunc {
 		result, err := tableCollection.UpdateOne(ctx, filter, bson.D{{Key: "$set", Value: updateObj}}, &opt,)
 
 		if err != nil {
-			msg := fmt.Sprintf("table update failed")
+			msg := "table update failed"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		defer cancel()

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -67,16 +66,12 @@ func CreateOrder() gin.HandlerFunc {
 
 		if err := c.BindJSON(&order); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		validationErr := validate.Struct(order)
 
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-
-			return
 		}
 
 		if order.Table_id != nil {
@@ -85,10 +80,8 @@ func CreateOrder() gin.HandlerFunc {
 			defer cancel()
 
 			if err != nil {
-				msg := fmt.Sprintf("table was not found")
+				msg := "table was not found"
 				c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-				return
 			}
 		}
 
@@ -100,10 +93,8 @@ func CreateOrder() gin.HandlerFunc {
 		result, insertErr := orderCollection.InsertOne(ctx, order)
 
 		if insertErr != nil {
-			msg := fmt.Sprintf("order was not created")
+			msg := "order was not created"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		defer cancel()
@@ -122,8 +113,6 @@ func UpdateOrder() gin.HandlerFunc {
 
 		if err := c.BindJSON(&order); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 		
 		var updateObj primitive.D
@@ -134,7 +123,7 @@ func UpdateOrder() gin.HandlerFunc {
 			defer cancel()
 
 			if err != nil {
-				msg := fmt.Sprintf("table was not found")
+				msg := "table was not found"
 				c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 
 				return
@@ -156,10 +145,8 @@ func UpdateOrder() gin.HandlerFunc {
 		result, err := orderCollection.UpdateOne(ctx, filter, bson.D{{Key: "$set", Value: updateObj}}, &opt,)
 
 		if err != nil {
-			msg := fmt.Sprintf("order update failed")
+			msg := "order update failed"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		defer cancel()

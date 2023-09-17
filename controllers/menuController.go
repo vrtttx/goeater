@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -65,16 +64,12 @@ func CreateMenu() gin.HandlerFunc {
 		
 		if err := c.BindJSON(&menu); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		validationErr := validate.Struct(menu)
 
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-
-			return
 		}
 
 		menu.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -85,10 +80,8 @@ func CreateMenu() gin.HandlerFunc {
 		result, insertErr := menuCollection.InsertOne(ctx, menu)
 
 		if insertErr != nil {
-			msg := fmt.Sprintf("menu item was not created")
+			msg := "menu item was not created"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		defer cancel()
@@ -110,8 +103,6 @@ func UpdateMenu() gin.HandlerFunc {
 
 		if err := c.BindJSON(&menu); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		menuId := c.Param("menu_id")
@@ -154,8 +145,6 @@ func UpdateMenu() gin.HandlerFunc {
 			if err != nil {
 				msg := "menu update failed"
 				c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-				return
 			}
 
 			defer cancel()
