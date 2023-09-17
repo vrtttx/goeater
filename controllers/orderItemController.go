@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -361,8 +360,6 @@ func CreateOrderItem() gin.HandlerFunc {
 
 		if err := c.BindJSON(&orderItemPack); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		order.Order_Date, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -379,8 +376,6 @@ func CreateOrderItem() gin.HandlerFunc {
 
 			if validationErr != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-
-				return
 			}
 			
 			orderItem.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -415,8 +410,6 @@ func UpdateOrderItem() gin.HandlerFunc {
 
 		if err := c.BindJSON(&orderItem); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		var updateObj primitive.D
@@ -446,10 +439,8 @@ func UpdateOrderItem() gin.HandlerFunc {
 		result, err := orderItemCollection.UpdateOne(ctx, filter, bson.D{{Key: "$set", Value: updateObj}}, &opt,)
 
 		if err != nil {
-			msg := fmt.Sprintf("order item update failed")
+			msg := "order item update failed"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		defer cancel()

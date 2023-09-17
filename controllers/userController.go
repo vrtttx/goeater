@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -37,7 +36,7 @@ func GetUsers() gin.HandlerFunc {
 		}
 
 		startIndex := (page - 1) * recordPerPage
-		startIndex, err = strconv.Atoi(c.Query("startIndex"))
+		startIndex, _ = strconv.Atoi(c.Query("startIndex"))
 
 		matchStage := bson.D{
 			{
@@ -118,16 +117,12 @@ func SignUp() gin.HandlerFunc {
 
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		validationErr := validate.Struct(user)
 
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-
-			return
 		}
 
 		count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
@@ -137,8 +132,6 @@ func SignUp() gin.HandlerFunc {
 		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking email"})
-
-			return
 		}
 
 		password := HashPassword(*user.Password)
@@ -151,14 +144,10 @@ func SignUp() gin.HandlerFunc {
 		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking phone number"})
-
-			return
 		}
 
 		if count > 0 {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "email or phone number already exists"})
-
-			return
 		}
 
 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -173,10 +162,8 @@ func SignUp() gin.HandlerFunc {
 		resultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
 
 		if insertErr != nil {
-			msg := fmt.Sprintf("user was not created")
+			msg := "user was not created"
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-
-			return
 		}
 
 		defer cancel()
@@ -193,8 +180,6 @@ func Login() gin.HandlerFunc {
 
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-			return
 		}
 
 		err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
@@ -203,17 +188,14 @@ func Login() gin.HandlerFunc {
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found, incorrect credentials"})
-
-			return
 		}
 
 		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
 
 		defer cancel()
 
-		if passwordIsValid != true {
+		if !passwordIsValid {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-			return
 		}
 
 		token, refreshToken, _ := helpers.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, foundUser.User_id)
@@ -240,7 +222,7 @@ func VerifyPassword(userPassword string, providedPassword string)(bool, string) 
 	msg := ""
 
 	if err != nil {
-		msg = fmt.Sprintf("incorrect credentials")
+		msg = "incorrect credentials"
 		check = false
 	}
 
